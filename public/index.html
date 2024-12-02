@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRUD Usuários</title>
+  <style>
+    /* Estilo geral da página */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Fonte moderna */
+      background-image: url(https://portaldocolorado.com.br/wp-content/uploads/2022/05/inter-202.jpg); /* Imagem de plano de fundo */
+      background-size: cover; /* Imagem cobrindo todo o fundo */
+      color: #333; /* Cor do texto */
+      margin: 0; /* Remove margens padrão */
+      padding: 20px; /* Espaçamento interno */
+    }
+    h1, h2 {
+      color: #ff1e00; /* Cor dos títulos */
+    }
+    /* Container principal */
+    .container {
+      max-width: 1000px; /* Largura máxima */
+      margin: auto; /* Centraliza o container */
+      background-color: #ffffff; /* Cor de fundo branca */
+      padding: 20px; /* Espaçamento interno */
+      border-radius: 25px; /* Bordas arredondadas */
+      box-shadow: 0 4px 8px rgba(0, 0.9, 0, 0.9); /* Sombra suave */
+    }
+    /* Estilo da lista de usuários */
+    ul {
+      list-style-type: none; /* Remove os marcadores da lista */
+      padding: 0; /* Remove o preenchimento padrão */
+    }
+    li {
+      display: flex; /* Exibe os itens da lista em linha */
+      justify-content: space-between; /* Espaça os elementos horizontalmente */
+      align-items: center; /* Alinha verticalmente */
+      background-color: #e0f7fa; /* Cor de fundo suave */
+      margin-bottom: 10px; /* Espaçamento entre os itens */
+      padding: 10px; /* Espaçamento interno */
+      border-radius: 5px; /* Bordas arredondadas */
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* Sombra sutil */
+    }
+    /* Estilo dos botões */
+    button {
+      background-color: #db5534; /* Cor de fundo dos botões */
+      color: #fff; /* Cor do texto do botão */
+      border: none; /* Remove a borda padrão */
+      padding: 8px 12px; /* Espaçamento interno */
+      border-radius: 10px; /* Bordas arredondadas */
+      cursor: pointer; /* Altera o cursor para indicar que é clicável */
+      transition: background-color 0.3s; /* Efeito de transição suave */
+    }
+    button:hover {
+      background-color: #b92982; /* Cor de fundo ao passar o mouse */
+    }
+    /* Estilo dos campos de entrada */
+    input[type="text"],
+    input[type="email"] {
+      width: 100%; /* Largura total do elemento */
+      padding: 8px; /* Espaçamento interno */
+      margin-bottom: 10px; /* Espaçamento inferior */
+      border: 1px solid #ccc; /* Borda cinza clara */
+      border-radius: 4px; /* Bordas arredondadas */
+      box-sizing: border-box; /* Inclui o preenchimento na largura total */
+    }
+    /* Estilo do grupo de campos de entrada */
+    .form-group {
+      display: flex; /* Exibe em linha */
+      flex-direction: column; /* Organiza em coluna */
+    }
+    .form-group button {
+      margin-top: 10px; /* Espaçamento superior */
+      align-self: flex-start; /* Alinha o botão à esquerda */
+    }
+  </style>
+  <script>
+    // Função para carregar os usuários da API
+    async function loadUsers() {
+      const res = await fetch('/users'); // Faz a requisição para obter os dados
+      const users = await res.json(); // Converte a resposta em JSON
+      const usersList = document.getElementById('users-list'); // Obtém a lista de usuários
+      usersList.innerHTML = users
+        .map(
+          user => `
+          <li>
+            <div>${user.name} (${user.email})</div> <!-- Exibe o nome e email do usuário -->
+            <div>
+              <button onclick="editUser(${user.id}, '${user.name}', '${user.email}')">Editar</button>
+              <!-- Botão para editar o usuário -->
+              <button onclick="deleteUser(${user.id})">Excluir</button>
+              <!-- Botão para excluir o usuário -->
+            </div>
+          </li>
+        `
+        )
+        .join(''); // Junta os itens da lista em uma única string
+    }
+
+    // Função para adicionar um novo usuário
+    async function addUser() {
+      const name = document.getElementById('name').value; // Obtém o nome do input
+      const email = document.getElementById('email').value; // Obtém o email do input
+      if (name && email) { // Verifica se ambos os campos estão preenchidos
+        await fetch('/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email }), // Envia os dados como JSON
+        });
+        document.getElementById('name').value = ''; // Limpa o campo de nome
+        document.getElementById('email').value = ''; // Limpa o campo de email
+        loadUsers(); // Recarrega a lista de usuários
+      }
+    }
+
+    // Função para editar um usuário
+    async function editUser(id, currentName, currentEmail) {
+      const name = prompt('Novo nome:', currentName); // Solicita o novo nome
+      const email = prompt('Novo email:', currentEmail); // Solicita o novo email
+
+      if (name && email) { // Verifica se ambos os campos foram preenchidos
+        await fetch(`/users/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email }), // Envia os dados atualizados como JSON
+        });
+        loadUsers(); // Recarrega a lista de usuários
+      }
+    }
+
+    // Função para excluir um usuário
+    async function deleteUser(id) {
+      if (confirm('Tem certeza que deseja excluir este usuário?')) { // Confirmação de exclusão
+        await fetch(`/users/${id}`, { method: 'DELETE' }); // Faz a requisição para deletar o usuário
+        loadUsers(); // Recarrega a lista de usuários
+      }
+    }
+
+    // Carrega a lista de usuários ao carregar a página
+    window.onload = loadUsers;
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>CRUD Usuários</h1>
+    <ul id="users-list"></ul> <!-- Lista de usuários -->
+    <h2>Adicionar Usuário</h2>
+    <div class="form-group">
+      <input type="text" id="name" placeholder="Nome"> <!-- Campo de entrada para o nome -->
+      <input type="email" id="email" placeholder="Email"> <!-- Campo de entrada para o email -->
+      <button onclick="addUser()">Adicionar</button> <!-- Botão para adicionar um novo usuário -->
+    </div>
+  </div>
+</body>
+</html>
